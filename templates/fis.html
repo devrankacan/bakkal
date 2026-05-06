@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiş #{{ satis.id }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 30px 16px;
+    }
+
+    .fis {
+      background: white;
+      width: 320px;
+      padding: 24px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-radius: 4px;
+    }
+
+    /* Üst kenar dişlisi efekti */
+    .fis::before {
+      content: '';
+      display: block;
+      height: 12px;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 10px,
+        #f0f0f0 10px, #f0f0f0 20px
+      );
+      margin: -24px -20px 20px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .fis-header { text-align: center; margin-bottom: 16px; }
+    .fis-logo {
+      font-size: 22px; font-weight: 900;
+      letter-spacing: 4px; color: #111;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .fis-slogan { font-size: 10px; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+    .fis-adres { font-size: 10px; color: #555; margin-top: 6px; line-height: 1.6; }
+
+    .cizgi { border: none; border-top: 1px dashed #999; margin: 12px 0; }
+    .cizgi-kati { border: none; border-top: 2px solid #111; margin: 12px 0; }
+
+    .fis-meta { font-size: 10.5px; color: #444; line-height: 1.8; }
+    .fis-meta .satir { display: flex; justify-content: space-between; }
+
+    .urunler { width: 100%; }
+    .urun-baslik {
+      display: flex; font-size: 10px; font-weight: 700;
+      color: #555; text-transform: uppercase;
+      padding-bottom: 6px; letter-spacing: 0.05em;
+    }
+    .urun-satir {
+      display: flex; align-items: flex-start;
+      font-size: 11.5px; padding: 5px 0;
+      border-bottom: 1px dotted #e0e0e0;
+    }
+    .urun-satir:last-child { border-bottom: none; }
+    .urun-ad { flex: 1; line-height: 1.4; padding-right: 8px; }
+    .urun-adet { width: 30px; text-align: center; color: #555; }
+    .urun-fiyat { width: 70px; text-align: right; font-weight: 600; }
+
+    .ara-toplam { margin-top: 10px; }
+    .ara-toplam .satir {
+      display: flex; justify-content: space-between;
+      font-size: 11.5px; padding: 3px 0; color: #444;
+    }
+    .toplam-satir {
+      display: flex; justify-content: space-between;
+      font-size: 16px; font-weight: 900;
+      padding: 8px 0; color: #111;
+    }
+    .kdv-notu { font-size: 10px; color: #777; text-align: right; margin-top: 2px; }
+
+    .fis-footer { text-align: center; margin-top: 16px; }
+    .fis-tesekkur { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+    .fis-alt { font-size: 9.5px; color: #888; line-height: 1.7; }
+
+    /* Alt kenar dişlisi */
+    .fis::after {
+      content: '';
+      display: block;
+      height: 12px;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 10px,
+        #f0f0f0 10px, #f0f0f0 20px
+      );
+      margin: 20px -20px -24px;
+      border-radius: 0 0 4px 4px;
+    }
+
+    /* Yazdır butonu - ekranda görünür, baskıda gizlenir */
+    .yazdir-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #111; padding: 14px;
+      display: flex; gap: 10px; justify-content: center;
+    }
+    .yazdir-btn {
+      background: #2563eb; color: white;
+      border: none; border-radius: 8px;
+      padding: 10px 28px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .yazdir-btn:hover { background: #1d4ed8; }
+    .kapat-btn {
+      background: #374151; color: white;
+      border: none; border-radius: 8px;
+      padding: 10px 20px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .kapat-btn:hover { background: #1f2937; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .fis { box-shadow: none; width: 100%; }
+      .yazdir-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="fis">
+  <div class="fis-header">
+    <div class="fis-logo">Bakkal Pro</div>
+    <div class="fis-slogan">Satış Fişi</div>
+    <div class="fis-adres">
+      trabzonbakkal.site<br>
+    </div>
+  </div>
+
+  <hr class="cizgi-kati">
+
+  <div class="fis-meta">
+    <div class="satir"><span>Fiş No</span><span>#{{ satis.id }}</span></div>
+    <div class="satir"><span>Tarih</span><span>{{ satis.tarih }}</span></div>
+    <div class="satir"><span>Saat</span><span>{{ satis.olusturma.split(' ')[1][:5] if ' ' in satis.olusturma else '' }}</span></div>
+    <div class="satir"><span>Kasiyer</span><span>Yönetici</span></div>
+  </div>
+
+  <hr class="cizgi">
+
+  <div class="urunler">
+    <div class="urun-baslik">
+      <span style="flex:1;">Ürün</span>
+      <span style="width:30px;text-align:center;">Adet</span>
+      <span style="width:70px;text-align:right;">Tutar</span>
+    </div>
+    {% for k in kalemler %}
+    <div class="urun-satir">
+      <div class="urun-ad">{{ k.ad }}</div>
+      <div class="urun-adet">{{ k.adet }}</div>
+      <div class="urun-fiyat">{{ "%.2f"|format(k.adet * k.birim_fiyat) }} ₺</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <hr class="cizgi">
+
+  <div class="ara-toplam">
+    {% set kdv_matrah = satis.toplam / 1.18 %}
+    <div class="satir"><span>Ara Toplam</span><span>{{ "%.2f"|format(kdv_matrah) }} ₺</span></div>
+    <div class="satir"><span>KDV (%18)</span><span>{{ "%.2f"|format(satis.toplam - kdv_matrah) }} ₺</span></div>
+  </div>
+
+  <hr class="cizgi-kati">
+
+  <div class="toplam-satir">
+    <span>TOPLAM</span>
+    <span>{{ "%.2f"|format(satis.toplam) }} ₺</span>
+  </div>
+  <div class="kdv-notu">KDV Dahil</div>
+
+  <hr class="cizgi">
+
+  <div class="fis-footer">
+    <div class="fis-tesekkur">Bizi tercih ettiğiniz için teşekkürler!</div>
+    <div class="fis-alt">
+      Bu fiş resmi belge niteliğinde değildir.<br>
+      Ürünlerinizi kontrol ediniz.
+    </div>
+  </div>
+</div>
+
+<div class="yazdir-bar">
+  <button class="yazdir-btn" onclick="window.print()">🖨 Yazdır</button>
+  <button class="kapat-btn" onclick="window.close()">Kapat</button>
+</div>
+
+</body>
+</html>

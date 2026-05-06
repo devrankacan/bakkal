@@ -363,5 +363,22 @@ def satis_detay(satis_id):
     return render_template("satis_detay.html", satis=satis, kalemler=kalemler)
 
 
+@app.route("/fis/<int:satis_id>")
+@giris_gerekli
+def fis(satis_id):
+    db = get_db()
+    satis = db.execute("SELECT * FROM satislar WHERE id = ?", (satis_id,)).fetchone()
+    kalemler = db.execute(
+        """SELECT sk.adet, sk.birim_fiyat, u.ad, u.barkod
+           FROM satis_kalemleri sk
+           JOIN urunler u ON u.id = sk.urun_id
+           WHERE sk.satis_id = ?""",
+        (satis_id,),
+    ).fetchall()
+    db.close()
+    return render_template("fis.html", satis=satis, kalemler=kalemler)
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
+

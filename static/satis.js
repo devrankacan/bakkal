@@ -130,8 +130,8 @@ async function odemeOnayla() {
     const data = await res.json();
     if (data.basari) {
       modalKapat();
-      alert(`✓ Satış tamamlandı\nToplam: ${fmt(data.toplam)}`);
       sepetTemizle();
+      window.open(`/fis/${data.satis_id}`, '_blank', 'width=400,height=650,toolbar=0,menubar=0');
     } else {
       alert("Hata: " + data.hata);
     }

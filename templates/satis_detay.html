@@ -5,7 +5,10 @@
 {% block content %}
 <div class="sayfa-baslik">
   <div></div>
-  <a href="/rapor" class="btn btn-ikincil">← Raporlara Dön</a>
+  <div style="display:flex;gap:8px;">
+    <a href="/fis/{{ satis.id }}" target="_blank" class="btn btn-birincil">🖨 Fişi Yazdır</a>
+    <a href="/rapor" class="btn btn-ikincil">← Raporlara Dön</a>
+  </div>
 </div>
 
 <div class="card form-kart" style="max-width:700px;">
