@@ -3,34 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Giriş — Bakkal Sistemi</title>
+  <title>Giriş — Bakkal Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="giris-body">
   <div class="giris-kart">
     <div class="giris-logo">
-      <div class="giris-logo-ikon">🛒</div>
-      <h1 class="giris-baslik">Bakkal Sistemi</h1>
-      <p class="giris-alt">Yönetim Paneli</p>
+      <div class="giris-logo-ikon">B</div>
+      <h1 class="giris-baslik">Bakkal Pro</h1>
+      <p class="giris-alt">Stok & Satış Yönetim Sistemi</p>
     </div>
 
     {% if hata %}
-      <div class="alert alert-hata">{{ hata }}</div>
+      <div class="alert alert-hata"><span>✕</span>{{ hata }}</div>
     {% endif %}
 
     <form method="POST" class="giris-form">
       <div class="form-group">
         <label>Şifre</label>
-        <input
-          type="password"
-          name="sifre"
-          placeholder="••••••••"
-          required
-          autofocus
-          class="giris-input"
-        />
+        <input type="password" name="sifre" class="giris-input" placeholder="••••••••" required autofocus />
       </div>
-      <button type="submit" class="btn btn-birincil giris-btn">Giriş Yap</button>
+      <button type="submit" class="btn btn-birincil giris-btn">Sisteme Giriş Yap</button>
     </form>
   </div>
 </body>

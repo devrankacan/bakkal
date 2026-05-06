@@ -1,31 +1,56 @@
 {% extends "base.html" %}
+{% block title %}Stok Yönetimi — Bakkal Pro{% endblock %}
+{% block page_title %}Stok Yönetimi{% endblock %}
+
 {% block content %}
-<div class="sayfa-baslik">
-  <h1>Stok Yönetimi</h1>
+<div class="istatistik-kartlar">
+  {% set tukenen = urunler | selectattr('stok', 'eq', 0) | list %}
+  {% set az_stok = urunler | selectattr('stok', 'le', 'min_stok') | list %}
+  <div class="istat-kart">
+    <div class="istat-ikon istat-ikon-mavi">📦</div>
+    <div class="istat-bilgi">
+      <div class="istat-sayi">{{ urunler|length }}</div>
+      <div class="istat-etiket">Toplam Ürün Çeşidi</div>
+    </div>
+  </div>
+  <div class="istat-kart">
+    <div class="istat-ikon istat-ikon-kirmizi">⚠</div>
+    <div class="istat-bilgi">
+      <div class="istat-sayi" style="color:#dc2626;">{{ urunler | selectattr('stok', 'equalto', 0) | list | length }}</div>
+      <div class="istat-etiket">Tükenen Ürün</div>
+    </div>
+  </div>
+  <div class="istat-kart">
+    <div class="istat-ikon istat-ikon-sari">↓</div>
+    <div class="istat-bilgi">
+      <div class="istat-sayi" style="color:#d97706;">{{ urunler | selectattr('stok', 'le', urunler[0].min_stok if urunler else 0) | list | length if urunler else 0 }}</div>
+      <div class="istat-etiket">Az Stoklu Ürün</div>
+    </div>
+  </div>
 </div>
 
-<div class="card">
+<div class="card" style="padding:0;">
   <div class="arama-bar">
-    <input type="text" id="aramaInput" placeholder="Ürün adı veya barkod ara..." oninput="tabloFiltrele()" autofocus />
-    <div style="display:flex;gap:0.5rem;align-items:center;">
-      <label style="font-size:0.85rem;color:#6c757d;white-space:nowrap;">Durum:</label>
+    <input type="text" id="aramaInput" placeholder="🔍  Ürün adı veya barkod ara..." oninput="tabloFiltrele()" autofocus />
+    <div style="display:flex;gap:8px;align-items:center;">
       <select id="durumFiltre" onchange="tabloFiltrele()" class="filtre-select">
-        <option value="">Tümü</option>
+        <option value="">Tüm Durumlar</option>
         <option value="tukendi">Tükendi</option>
         <option value="az">Az Stok</option>
         <option value="yeterli">Yeterli</option>
       </select>
-      <span id="sonucSayisi" class="sonuc-sayisi"></span>
+      <span id="sonucSayisi" class="sonuc-sayisi">— ürün</span>
     </div>
   </div>
+
   <table class="tablo" id="stokTablosu">
     <thead>
       <tr>
         <th>Barkod</th>
         <th>Ürün Adı</th>
         <th>Kategori</th>
-        <th>Stok</th>
-        <th>Min. Stok</th>
+        <th style="text-align:center;">Stok</th>
+        <th style="text-align:center;">Min. Stok</th>
         <th>Durum</th>
         <th>Stok Ekle</th>
       </tr>
@@ -35,15 +60,15 @@
       <tr class="{{ 'satir-uyari' if u.stok <= u.min_stok }}"
           data-durum="{{ 'tukendi' if u.stok == 0 else ('az' if u.stok <= u.min_stok else 'yeterli') }}">
         <td><code>{{ u.barkod }}</code></td>
-        <td>{{ u.ad }}</td>
-        <td>{{ u.kategori or '-' }}</td>
-        <td><strong>{{ u.stok }}</strong></td>
-        <td>{{ u.min_stok }}</td>
+        <td style="font-weight:600;">{{ u.ad }}</td>
+        <td><span style="background:#f3f4f6;padding:2px 8px;border-radius:5px;font-size:12px;">{{ u.kategori or '—' }}</span></td>
+        <td style="text-align:center;font-size:16px;font-weight:800;color:{{ '#dc2626' if u.stok == 0 else ('#d97706' if u.stok <= u.min_stok else '#059669') }};">{{ u.stok }}</td>
+        <td style="text-align:center;color:#6b7280;">{{ u.min_stok }}</td>
         <td>
           {% if u.stok == 0 %}
             <span class="rozet rozet-tehlike">Tükendi</span>
           {% elif u.stok <= u.min_stok %}
-            <span class="rozet rozet-uyari">Az</span>
+            <span class="rozet rozet-uyari">Az Stok</span>
           {% else %}
             <span class="rozet rozet-basari">Yeterli</span>
           {% endif %}
@@ -60,7 +85,7 @@
       {% endfor %}
     </tbody>
   </table>
-  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:2rem;">Arama sonucu bulunamadı.</div>
+  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:32px;">Aramanızla eşleşen ürün bulunamadı.</div>
 </div>
 
 <script>
@@ -70,15 +95,12 @@ function tabloFiltrele() {
   const satirlar = document.querySelectorAll("#stokTablosu tbody tr");
   let gorunen = 0;
   satirlar.forEach(satir => {
-    const metin = satir.textContent.toLowerCase();
-    const satirDurum = satir.dataset.durum || "";
-    const metinEslesme = !q || metin.includes(q);
-    const durumEslesme = !durum || satirDurum === durum;
-    const goster = metinEslesme && durumEslesme;
-    satir.style.display = goster ? "" : "none";
-    if (goster) gorunen++;
+    const eslesme = (!q || satir.textContent.toLowerCase().includes(q)) &&
+                    (!durum || satir.dataset.durum === durum);
+    satir.style.display = eslesme ? "" : "none";
+    if (eslesme) gorunen++;
   });
-  document.getElementById("sonucSayisi").textContent = `${gorunen} ürün`;
+  document.getElementById("sonucSayisi").textContent = gorunen + " ürün";
   document.getElementById("bulunamadi").classList.toggle("gizli", gorunen > 0);
 }
 tabloFiltrele();

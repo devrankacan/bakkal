@@ -1,50 +1,58 @@
 {% extends "base.html" %}
+{% block title %}Ürün Kataloğu — Bakkal Pro{% endblock %}
+{% block page_title %}Ürün Kataloğu{% endblock %}
+
 {% block content %}
 <div class="sayfa-baslik">
-  <h1>Ürün Yönetimi</h1>
-  <div style="display:flex;gap:0.5rem;">
+  <div></div>
+  <div style="display:flex;gap:8px;">
     <a href="/urunler/yukle" class="btn btn-ikincil">↑ Toplu Yükle</a>
     <a href="/urun/ekle" class="btn btn-birincil">+ Yeni Ürün</a>
   </div>
 </div>
 
-<div class="card">
+<div class="card" style="padding:0;">
   <div class="arama-bar">
-    <input type="text" id="aramaInput" placeholder="Ürün adı veya barkod ara..." oninput="tabloFiltrele()" autofocus />
-    <span id="sonucSayisi" class="sonuc-sayisi"></span>
+    <input type="text" id="aramaInput" placeholder="🔍  Ürün adı, barkod veya kategori ara..." oninput="tabloFiltrele()" autofocus />
+    <span id="sonucSayisi" class="sonuc-sayisi">— ürün</span>
   </div>
+
   <table class="tablo" id="urunTablosu">
     <thead>
       <tr>
         <th>Barkod</th>
         <th>Ürün Adı</th>
         <th>Kategori</th>
-        <th>Fiyat</th>
-        <th>Stok</th>
-        <th>İşlemler</th>
+        <th style="text-align:right;">Fiyat</th>
+        <th style="text-align:center;">Stok</th>
+        <th style="text-align:center;">İşlemler</th>
       </tr>
     </thead>
     <tbody>
       {% for u in urunler %}
       <tr>
         <td><code>{{ u.barkod }}</code></td>
-        <td>{{ u.ad }}</td>
-        <td>{{ u.kategori or '-' }}</td>
-        <td>{{ "%.2f"|format(u.fiyat) }} ₺</td>
-        <td>{{ u.stok }}</td>
-        <td class="islem-butonlar">
-          <a href="/urun/duzenle/{{ u.id }}" class="btn btn-kucuk btn-ikincil">Düzenle</a>
-          <form method="POST" action="/urun/sil/{{ u.id }}" onsubmit="return confirm('Ürünü silmek istediğinize emin misiniz?')">
-            <button type="submit" class="btn btn-kucuk btn-tehlike">Sil</button>
-          </form>
+        <td style="font-weight:600;">{{ u.ad }}</td>
+        <td><span style="background:#f3f4f6;padding:2px 8px;border-radius:5px;font-size:12px;">{{ u.kategori or '—' }}</span></td>
+        <td style="text-align:right;font-weight:700;font-size:15px;">{{ "%.2f"|format(u.fiyat) }} ₺</td>
+        <td style="text-align:center;">
+          <span style="font-weight:700;color:{{ '#dc2626' if u.stok == 0 else ('#d97706' if u.stok <= u.min_stok else '#059669') }};">{{ u.stok }}</span>
+        </td>
+        <td style="text-align:center;">
+          <div class="islem-butonlar" style="justify-content:center;">
+            <a href="/urun/duzenle/{{ u.id }}" class="btn btn-kucuk btn-ikincil">Düzenle</a>
+            <form method="POST" action="/urun/sil/{{ u.id }}" onsubmit="return confirm('{{ u.ad }} silinecek. Emin misiniz?')">
+              <button type="submit" class="btn btn-kucuk btn-tehlike">Sil</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="bos-mesaj">Henüz ürün eklenmemiş. <a href="/urun/ekle">Ürün ekle</a></td></tr>
+      <tr><td colspan="6" class="bos-mesaj">Henüz ürün eklenmemiş. <a href="/urun/ekle" style="color:#2563eb;">Ürün ekle →</a></td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:2rem;">Arama sonucu bulunamadı.</div>
+  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:32px;">Aramanızla eşleşen ürün bulunamadı.</div>
 </div>
 
 <script>
@@ -53,12 +61,11 @@ function tabloFiltrele() {
   const satirlar = document.querySelectorAll("#urunTablosu tbody tr");
   let gorunen = 0;
   satirlar.forEach(satir => {
-    const metin = satir.textContent.toLowerCase();
-    const eslesme = !q || metin.includes(q);
+    const eslesme = !q || satir.textContent.toLowerCase().includes(q);
     satir.style.display = eslesme ? "" : "none";
     if (eslesme) gorunen++;
   });
-  document.getElementById("sonucSayisi").textContent = q ? `${gorunen} sonuç` : `${gorunen} ürün`;
+  document.getElementById("sonucSayisi").textContent = gorunen + " ürün";
   document.getElementById("bulunamadi").classList.toggle("gizli", gorunen > 0);
 }
 tabloFiltrele();

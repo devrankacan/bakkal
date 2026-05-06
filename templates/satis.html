@@ -1,42 +1,74 @@
 {% extends "base.html" %}
+{% block title %}Satış Ekranı — Bakkal Pro{% endblock %}
+{% block page_title %}Satış Ekranı{% endblock %}
+
 {% block content %}
 <div class="satis-layout">
-  <div class="satis-sol">
-    <div class="card">
-      <h2>Barkod Okut</h2>
+
+  <!-- SOL: Barkod -->
+  <div class="card" style="padding:0;">
+    <div class="card-header">
+      <h2>BARKOD OKUYUCU</h2>
+      <span class="tarih-badge" id="satisTarih"></span>
+    </div>
+    <div class="barkod-panel">
       <div class="barkod-input-wrap">
         <input
-          type="text"
-          id="barkodInput"
+          type="text" id="barkodInput"
           placeholder="Barkodu okutun veya yazın..."
-          autocomplete="off"
-          autofocus
+          autocomplete="off" autofocus
         />
       </div>
       <div id="urunBilgi" class="urun-bilgi gizli"></div>
     </div>
+
+    <!-- Hızlı istatistik -->
+    <div style="padding:0 20px 20px; display:flex; gap:12px;">
+      <div style="flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#2563eb;" id="sepetKalemSayisi">0</div>
+        <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Çeşit</div>
+      </div>
+      <div style="flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#059669;" id="sepetToplamAdet">0</div>
+        <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Adet</div>
+      </div>
+    </div>
   </div>
 
-  <div class="satis-sag">
-    <div class="card sepet-card">
-      <h2>Sepet</h2>
+  <!-- SAĞ: Sepet -->
+  <div class="card" style="padding:0;">
+    <div class="sepet-header">
+      <h2>SEPET</h2>
+      <span class="sepet-adet-badge" id="sepetBadge">0</span>
+    </div>
+
+    <div style="overflow-y:auto;max-height:400px;">
       <table id="sepetTablosu">
         <thead>
-          <tr><th>Ürün</th><th>Adet</th><th>Fiyat</th><th>Toplam</th><th></th></tr>
+          <tr>
+            <th>Ürün</th>
+            <th style="text-align:center;">Adet</th>
+            <th style="text-align:right;">Birim</th>
+            <th style="text-align:right;">Toplam</th>
+            <th></th>
+          </tr>
         </thead>
         <tbody id="sepetBody">
-          <tr id="bosSebet"><td colspan="5" class="bos-mesaj">Sepet boş</td></tr>
+          <tr id="bosSepet">
+            <td colspan="5" class="bos-mesaj">Sepet boş — barkod okutun</td>
+          </tr>
         </tbody>
       </table>
+    </div>
 
+    <div class="sepet-alt">
       <div class="sepet-toplam">
-        <span>Toplam:</span>
-        <span id="toplamFiyat" class="toplam-fiyat">0,00 ₺</span>
+        <span class="sepet-toplam-label">GENEL TOPLAM</span>
+        <span class="sepet-toplam-fiyat" id="toplamFiyat">₺0,00</span>
       </div>
-
       <div class="sepet-butonlar">
-        <button id="iptalBtn" class="btn btn-tehlike" onclick="sepetTemizle()">İptal</button>
-        <button id="odemeBtn" class="btn btn-basari" onclick="odemeYap()">Ödeme Al</button>
+        <button class="btn btn-ikincil" onclick="sepetTemizle()">✕ İptal</button>
+        <button class="btn btn-basari btn-buyuk" onclick="odemeYap()">✓ Ödeme Al</button>
       </div>
     </div>
   </div>
@@ -45,19 +77,35 @@
 <!-- Ödeme Modal -->
 <div id="odemeModal" class="modal gizli">
   <div class="modal-icerik">
-    <h2>Ödeme</h2>
-    <p class="modal-toplam">Toplam: <strong id="modalToplam"></strong></p>
-    <div class="form-group">
-      <label>Alınan Para (₺)</label>
-      <input type="number" id="alinanPara" step="0.01" placeholder="0.00" oninput="paraHesapla()" />
+    <div class="modal-baslik">
+      <h2>Ödeme Al</h2>
     </div>
-    <p class="para-ustu">Para Üstü: <strong id="paraUstu">-</strong></p>
-    <div class="modal-butonlar">
+    <div class="modal-body">
+      <div class="modal-toplam">
+        <span class="modal-toplam-label">Tahsil Edilecek Tutar</span>
+        <span class="modal-toplam-fiyat" id="modalToplam"></span>
+      </div>
+      <div class="form-group">
+        <label>Alınan Para (₺)</label>
+        <input type="number" id="alinanPara" step="0.01" min="0"
+               placeholder="0,00" oninput="paraHesapla()"
+               style="font-size:18px;font-weight:700;text-align:right;" />
+      </div>
+      <div class="para-ustu-satir">
+        <span class="para-ustu-label">Para Üstü</span>
+        <span class="para-ustu-fiyat" id="paraUstu">—</span>
+      </div>
+    </div>
+    <div class="modal-footer">
       <button class="btn btn-ikincil" onclick="modalKapat()">Geri</button>
-      <button class="btn btn-basari" onclick="odemeOnayla()">Onayla</button>
+      <button class="btn btn-basari" onclick="odemeOnayla()">✓ Onayla</button>
     </div>
   </div>
 </div>
 
 <script src="{{ url_for('static', filename='satis.js') }}"></script>
+<script>
+  const el = document.getElementById("satisTarih");
+  if (el) el.textContent = new Date().toLocaleDateString("tr-TR", {day:"2-digit",month:"long",year:"numeric"});
+</script>
 {% endblock %}

@@ -3,29 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bakkal Sistemi</title>
+  <title>{% block title %}Bakkal Pro{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <nav>
-    <div class="nav-brand">🛒 Bakkal</div>
-    <div class="nav-links">
-      <a href="/satis" class="{{ 'active' if request.path == '/satis' }}">Satış</a>
-      <a href="/stok" class="{{ 'active' if request.path == '/stok' }}">Stok</a>
-      <a href="/urunler" class="{{ 'active' if request.path == '/urunler' }}">Ürünler</a>
-      <a href="/rapor" class="{{ 'active' if request.path == '/rapor' }}">Rapor</a>
-      <a href="/cikis" class="nav-cikis">Çıkış</a>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">B</div>
+        <div class="brand-text">
+          <span class="brand-name">Bakkal Pro</span>
+          <span class="brand-sub">Yönetim Sistemi</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">ANA MENÜ</div>
+        <a href="/satis" class="nav-item {{ 'active' if request.path == '/satis' }}">
+          <span class="nav-icon">⊞</span>
+          <span>Satış Ekranı</span>
+        </a>
+        <a href="/stok" class="nav-item {{ 'active' if request.path == '/stok' }}">
+          <span class="nav-icon">◫</span>
+          <span>Stok Yönetimi</span>
+        </a>
+        <a href="/urunler" class="nav-item {{ 'active' if '/urun' in request.path }}">
+          <span class="nav-icon">≡</span>
+          <span>Ürün Kataloğu</span>
+        </a>
+        <a href="/rapor" class="nav-item {{ 'active' if request.path == '/rapor' }}">
+          <span class="nav-icon">◈</span>
+          <span>Raporlar</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="/cikis" class="cikis-btn">
+          <span>⏻</span>
+          <span>Çıkış Yap</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          {% block breadcrumb %}<span class="page-title">{% block page_title %}{% endblock %}</span>{% endblock %}
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-date" id="topbarSaat"></div>
+          <div class="topbar-user">
+            <div class="user-avatar">Y</div>
+            <span>Yönetici</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span>{{ '✓' if category == 'basari' else '✕' }}</span>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </div>
     </div>
-  </nav>
+  </div>
 
-  <main>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endwith %}
-
-    {% block content %}{% endblock %}
-  </main>
+  <script>
+    function saatGuncelle() {
+      const el = document.getElementById("topbarSaat");
+      if (!el) return;
+      const now = new Date();
+      el.textContent = now.toLocaleString("tr-TR", {
+        weekday: "short", day: "2-digit", month: "short",
+        hour: "2-digit", minute: "2-digit"
+      });
+    }
+    saatGuncelle();
+    setInterval(saatGuncelle, 30000);
+  </script>
 </body>
 </html>
