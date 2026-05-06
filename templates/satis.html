@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="satis-layout">
+  <div class="satis-sol">
+    <div class="card">
+      <h2>Barkod Okut</h2>
+      <div class="barkod-input-wrap">
+        <input
+          type="text"
+          id="barkodInput"
+          placeholder="Barkodu okutun veya yazın..."
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+      <div id="urunBilgi" class="urun-bilgi gizli"></div>
+    </div>
+  </div>
+
+  <div class="satis-sag">
+    <div class="card sepet-card">
+      <h2>Sepet</h2>
+      <table id="sepetTablosu">
+        <thead>
+          <tr><th>Ürün</th><th>Adet</th><th>Fiyat</th><th>Toplam</th><th></th></tr>
+        </thead>
+        <tbody id="sepetBody">
+          <tr id="bosSebet"><td colspan="5" class="bos-mesaj">Sepet boş</td></tr>
+        </tbody>
+      </table>
+
+      <div class="sepet-toplam">
+        <span>Toplam:</span>
+        <span id="toplamFiyat" class="toplam-fiyat">0,00 ₺</span>
+      </div>
+
+      <div class="sepet-butonlar">
+        <button id="iptalBtn" class="btn btn-tehlike" onclick="sepetTemizle()">İptal</button>
+        <button id="odemeBtn" class="btn btn-basari" onclick="odemeYap()">Ödeme Al</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ödeme Modal -->
+<div id="odemeModal" class="modal gizli">
+  <div class="modal-icerik">
+    <h2>Ödeme</h2>
+    <p class="modal-toplam">Toplam: <strong id="modalToplam"></strong></p>
+    <div class="form-group">
+      <label>Alınan Para (₺)</label>
+      <input type="number" id="alinanPara" step="0.01" placeholder="0.00" oninput="paraHesapla()" />
+    </div>
+    <p class="para-ustu">Para Üstü: <strong id="paraUstu">-</strong></p>
+    <div class="modal-butonlar">
+      <button class="btn btn-ikincil" onclick="modalKapat()">Geri</button>
+      <button class="btn btn-basari" onclick="odemeOnayla()">Onayla</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='satis.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>Stok Yönetimi</h1>
+</div>
+
+<div class="card">
+  <table class="tablo">
+    <thead>
+      <tr>
+        <th>Barkod</th>
+        <th>Ürün Adı</th>
+        <th>Kategori</th>
+        <th>Stok</th>
+        <th>Min. Stok</th>
+        <th>Durum</th>
+        <th>Stok Ekle</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in urunler %}
+      <tr class="{{ 'satir-uyari' if u.stok <= u.min_stok }}">
+        <td><code>{{ u.barkod }}</code></td>
+        <td>{{ u.ad }}</td>
+        <td>{{ u.kategori or '-' }}</td>
+        <td><strong>{{ u.stok }}</strong></td>
+        <td>{{ u.min_stok }}</td>
+        <td>
+          {% if u.stok == 0 %}
+            <span class="rozet rozet-tehlike">Tükendi</span>
+          {% elif u.stok <= u.min_stok %}
+            <span class="rozet rozet-uyari">Az</span>
+          {% else %}
+            <span class="rozet rozet-basari">Yeterli</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="POST" action="/stok/guncelle/{{ u.id }}" class="stok-form">
+            <input type="number" name="miktar" min="1" value="1" class="stok-input" />
+            <button type="submit" class="btn btn-kucuk btn-birincil">+ Ekle</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="bos-mesaj">Henüz ürün eklenmemiş.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

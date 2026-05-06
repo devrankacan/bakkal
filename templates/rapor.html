@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>Rapor</h1>
+  <span class="tarih-badge">{{ bugun }}</span>
+</div>
+
+<div class="istatistik-kartlar">
+  <div class="istat-kart">
+    <div class="istat-sayi">{{ gunluk.adet }}</div>
+    <div class="istat-etiket">Bugünkü Satış</div>
+  </div>
+  <div class="istat-kart">
+    <div class="istat-sayi">{{ "%.2f"|format(gunluk.toplam) }} ₺</div>
+    <div class="istat-etiket">Bugünkü Ciro</div>
+  </div>
+  <div class="istat-kart {{ 'istat-uyari' if dusuk_stok|length > 0 }}">
+    <div class="istat-sayi">{{ dusuk_stok|length }}</div>
+    <div class="istat-etiket">Düşük Stok Uyarısı</div>
+  </div>
+</div>
+
+{% if dusuk_stok %}
+<div class="card">
+  <h2>⚠️ Düşük Stok Uyarısı</h2>
+  <table class="tablo">
+    <thead>
+      <tr><th>Ürün</th><th>Barkod</th><th>Mevcut Stok</th><th>Min. Stok</th></tr>
+    </thead>
+    <tbody>
+      {% for u in dusuk_stok %}
+      <tr class="satir-uyari">
+        <td>{{ u.ad }}</td>
+        <td><code>{{ u.barkod }}</code></td>
+        <td><strong>{{ u.stok }}</strong></td>
+        <td>{{ u.min_stok }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Son Satışlar</h2>
+  <table class="tablo">
+    <thead>
+      <tr><th>No</th><th>Tarih</th><th>Saat</th><th>Toplam</th><th>Detay</th></tr>
+    </thead>
+    <tbody>
+      {% for s in son_satislar %}
+      <tr>
+        <td>#{{ s.id }}</td>
+        <td>{{ s.tarih }}</td>
+        <td>{{ s.olusturma.split(' ')[1] if ' ' in s.olusturma else s.olusturma }}</td>
+        <td>{{ "%.2f"|format(s.toplam) }} ₺</td>
+        <td><a href="/rapor/satis/{{ s.id }}" class="btn btn-kucuk btn-ikincil">Görüntüle</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="bos-mesaj">Henüz satış yapılmamış.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

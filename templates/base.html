@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakkal Sistemi</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav>
+    <div class="nav-brand">🛒 Bakkal</div>
+    <div class="nav-links">
+      <a href="/satis" class="{{ 'active' if request.path == '/satis' }}">Satış</a>
+      <a href="/stok" class="{{ 'active' if request.path == '/stok' }}">Stok</a>
+      <a href="/urunler" class="{{ 'active' if request.path == '/urunler' }}">Ürünler</a>
+      <a href="/rapor" class="{{ 'active' if request.path == '/rapor' }}">Rapor</a>
+    </div>
+  </nav>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

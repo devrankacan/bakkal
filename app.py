@@ -1,0 +1,213 @@
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from database import get_db, init_db
+from datetime import date
+
+app = Flask(__name__)
+app.secret_key = "bakkal-secret-key"
+
+
+@app.before_request
+def setup():
+    init_db()
+
+
+# ---------- Ana Sayfa ----------
+@app.route("/")
+def index():
+    return redirect(url_for("satis"))
+
+
+# ---------- Satış Ekranı ----------
+@app.route("/satis")
+def satis():
+    return render_template("satis.html")
+
+
+@app.route("/api/urun/<barkod>")
+def urun_bul(barkod):
+    db = get_db()
+    urun = db.execute("SELECT * FROM urunler WHERE barkod = ?", (barkod,)).fetchone()
+    db.close()
+    if urun:
+        return jsonify(dict(urun))
+    return jsonify({"hata": "Ürün bulunamadı"}), 404
+
+
+@app.route("/api/satis", methods=["POST"])
+def satis_kaydet():
+    data = request.json
+    sepet = data.get("sepet", [])
+    if not sepet:
+        return jsonify({"hata": "Sepet boş"}), 400
+
+    db = get_db()
+    try:
+        toplam = sum(item["fiyat"] * item["adet"] for item in sepet)
+        bugun = date.today().isoformat()
+        cur = db.execute(
+            "INSERT INTO satislar (tarih, toplam) VALUES (?, ?)", (bugun, toplam)
+        )
+        satis_id = cur.lastrowid
+
+        for item in sepet:
+            urun = db.execute("SELECT stok FROM urunler WHERE id = ?", (item["id"],)).fetchone()
+            if not urun or urun["stok"] < item["adet"]:
+                db.rollback()
+                return jsonify({"hata": f"{item['ad']} için yeterli stok yok"}), 400
+
+            db.execute(
+                "INSERT INTO satis_kalemleri (satis_id, urun_id, adet, birim_fiyat) VALUES (?, ?, ?, ?)",
+                (satis_id, item["id"], item["adet"], item["fiyat"]),
+            )
+            db.execute(
+                "UPDATE urunler SET stok = stok - ? WHERE id = ?",
+                (item["adet"], item["id"]),
+            )
+
+        db.commit()
+        return jsonify({"basari": True, "satis_id": satis_id, "toplam": toplam})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"hata": str(e)}), 500
+    finally:
+        db.close()
+
+
+# ---------- Stok Yönetimi ----------
+@app.route("/stok")
+def stok():
+    db = get_db()
+    urunler = db.execute("SELECT * FROM urunler ORDER BY ad").fetchall()
+    db.close()
+    return render_template("stok.html", urunler=urunler)
+
+
+@app.route("/stok/guncelle/<int:urun_id>", methods=["POST"])
+def stok_guncelle(urun_id):
+    miktar = int(request.form["miktar"])
+    db = get_db()
+    db.execute("UPDATE urunler SET stok = stok + ? WHERE id = ?", (miktar, urun_id))
+    db.commit()
+    db.close()
+    flash("Stok güncellendi.", "basari")
+    return redirect(url_for("stok"))
+
+
+# ---------- Ürün Yönetimi ----------
+@app.route("/urunler")
+def urunler():
+    db = get_db()
+    urun_listesi = db.execute("SELECT * FROM urunler ORDER BY ad").fetchall()
+    db.close()
+    return render_template("urunler.html", urunler=urun_listesi)
+
+
+@app.route("/urun/ekle", methods=["GET", "POST"])
+def urun_ekle():
+    if request.method == "POST":
+        barkod = request.form["barkod"].strip()
+        ad = request.form["ad"].strip()
+        fiyat = float(request.form["fiyat"])
+        stok = int(request.form["stok"])
+        min_stok = int(request.form["min_stok"])
+        kategori = request.form["kategori"].strip()
+
+        db = get_db()
+        try:
+            db.execute(
+                "INSERT INTO urunler (barkod, ad, fiyat, stok, min_stok, kategori) VALUES (?, ?, ?, ?, ?, ?)",
+                (barkod, ad, fiyat, stok, min_stok, kategori),
+            )
+            db.commit()
+            flash("Ürün eklendi.", "basari")
+            return redirect(url_for("urunler"))
+        except Exception:
+            flash("Bu barkod zaten kayıtlı.", "hata")
+        finally:
+            db.close()
+
+    return render_template("urun_form.html", urun=None)
+
+
+@app.route("/urun/duzenle/<int:urun_id>", methods=["GET", "POST"])
+def urun_duzenle(urun_id):
+    db = get_db()
+    urun = db.execute("SELECT * FROM urunler WHERE id = ?", (urun_id,)).fetchone()
+
+    if request.method == "POST":
+        barkod = request.form["barkod"].strip()
+        ad = request.form["ad"].strip()
+        fiyat = float(request.form["fiyat"])
+        stok = int(request.form["stok"])
+        min_stok = int(request.form["min_stok"])
+        kategori = request.form["kategori"].strip()
+
+        db.execute(
+            "UPDATE urunler SET barkod=?, ad=?, fiyat=?, stok=?, min_stok=?, kategori=? WHERE id=?",
+            (barkod, ad, fiyat, stok, min_stok, kategori, urun_id),
+        )
+        db.commit()
+        db.close()
+        flash("Ürün güncellendi.", "basari")
+        return redirect(url_for("urunler"))
+
+    db.close()
+    return render_template("urun_form.html", urun=urun)
+
+
+@app.route("/urun/sil/<int:urun_id>", methods=["POST"])
+def urun_sil(urun_id):
+    db = get_db()
+    db.execute("DELETE FROM urunler WHERE id = ?", (urun_id,))
+    db.commit()
+    db.close()
+    flash("Ürün silindi.", "basari")
+    return redirect(url_for("urunler"))
+
+
+# ---------- Raporlar ----------
+@app.route("/rapor")
+def rapor():
+    db = get_db()
+    bugun = date.today().isoformat()
+
+    gunluk = db.execute(
+        "SELECT COUNT(*) as adet, COALESCE(SUM(toplam),0) as toplam FROM satislar WHERE tarih = ?",
+        (bugun,),
+    ).fetchone()
+
+    son_satislar = db.execute(
+        "SELECT * FROM satislar ORDER BY id DESC LIMIT 20"
+    ).fetchall()
+
+    dusuk_stok = db.execute(
+        "SELECT * FROM urunler WHERE stok <= min_stok ORDER BY stok ASC"
+    ).fetchall()
+
+    db.close()
+    return render_template(
+        "rapor.html",
+        gunluk=gunluk,
+        son_satislar=son_satislar,
+        dusuk_stok=dusuk_stok,
+        bugun=bugun,
+    )
+
+
+@app.route("/rapor/satis/<int:satis_id>")
+def satis_detay(satis_id):
+    db = get_db()
+    satis = db.execute("SELECT * FROM satislar WHERE id = ?", (satis_id,)).fetchone()
+    kalemler = db.execute(
+        """SELECT sk.adet, sk.birim_fiyat, u.ad, u.barkod
+           FROM satis_kalemleri sk
+           JOIN urunler u ON u.id = sk.urun_id
+           WHERE sk.satis_id = ?""",
+        (satis_id,),
+    ).fetchall()
+    db.close()
+    return render_template("satis_detay.html", satis=satis, kalemler=kalemler)
+
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)

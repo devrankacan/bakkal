@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>Satış Detayı #{{ satis.id }}</h1>
+  <a href="/rapor" class="btn btn-ikincil">← Geri</a>
+</div>
+
+<div class="card form-card">
+  <p><strong>Tarih:</strong> {{ satis.olusturma }}</p>
+  <table class="tablo">
+    <thead>
+      <tr><th>Ürün</th><th>Barkod</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr>
+    </thead>
+    <tbody>
+      {% for k in kalemler %}
+      <tr>
+        <td>{{ k.ad }}</td>
+        <td><code>{{ k.barkod }}</code></td>
+        <td>{{ k.adet }}</td>
+        <td>{{ "%.2f"|format(k.birim_fiyat) }} ₺</td>
+        <td>{{ "%.2f"|format(k.adet * k.birim_fiyat) }} ₺</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4"><strong>Toplam</strong></td>
+        <td><strong>{{ "%.2f"|format(satis.toplam) }} ₺</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>{{ 'Ürün Düzenle' if urun else 'Yeni Ürün Ekle' }}</h1>
+  <a href="/urunler" class="btn btn-ikincil">← Geri</a>
+</div>
+
+<div class="card form-card">
+  <form method="POST">
+    <div class="form-group">
+      <label>Barkod *</label>
+      <input
+        type="text"
+        name="barkod"
+        value="{{ urun.barkod if urun else '' }}"
+        required
+        placeholder="Barkod okutun veya yazın"
+        autofocus
+      />
+    </div>
+    <div class="form-group">
+      <label>Ürün Adı *</label>
+      <input type="text" name="ad" value="{{ urun.ad if urun else '' }}" required placeholder="Ürün adı" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fiyat (₺) *</label>
+        <input type="number" name="fiyat" value="{{ urun.fiyat if urun else '' }}" step="0.01" min="0" required placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label>Kategori</label>
+        <input type="text" name="kategori" value="{{ urun.kategori if urun else '' }}" placeholder="Örn: İçecek, Atıştırmalık" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mevcut Stok *</label>
+        <input type="number" name="stok" value="{{ urun.stok if urun else 0 }}" min="0" required />
+      </div>
+      <div class="form-group">
+        <label>Minimum Stok Uyarısı *</label>
+        <input type="number" name="min_stok" value="{{ urun.min_stok if urun else 5 }}" min="0" required />
+      </div>
+    </div>
+    <div class="form-butonlar">
+      <a href="/urunler" class="btn btn-ikincil">İptal</a>
+      <button type="submit" class="btn btn-birincil">{{ 'Güncelle' if urun else 'Kaydet' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>Ürün Yönetimi</h1>
+  <a href="/urun/ekle" class="btn btn-birincil">+ Yeni Ürün</a>
+</div>
+
+<div class="card">
+  <table class="tablo">
+    <thead>
+      <tr>
+        <th>Barkod</th>
+        <th>Ürün Adı</th>
+        <th>Kategori</th>
+        <th>Fiyat</th>
+        <th>Stok</th>
+        <th>İşlemler</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in urunler %}
+      <tr>
+        <td><code>{{ u.barkod }}</code></td>
+        <td>{{ u.ad }}</td>
+        <td>{{ u.kategori or '-' }}</td>
+        <td>{{ "%.2f"|format(u.fiyat) }} ₺</td>
+        <td>{{ u.stok }}</td>
+        <td class="islem-butonlar">
+          <a href="/urun/duzenle/{{ u.id }}" class="btn btn-kucuk btn-ikincil">Düzenle</a>
+          <form method="POST" action="/urun/sil/{{ u.id }}" onsubmit="return confirm('Ürünü silmek istediğinize emin misiniz?')">
+            <button type="submit" class="btn btn-kucuk btn-tehlike">Sil</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="bos-mesaj">Henüz ürün eklenmemiş. <a href="/urun/ekle">Ürün ekle</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
