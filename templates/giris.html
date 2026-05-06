@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Giriş — Bakkal Sistemi</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="giris-body">
+  <div class="giris-kart">
+    <div class="giris-logo">
+      <div class="giris-logo-ikon">🛒</div>
+      <h1 class="giris-baslik">Bakkal Sistemi</h1>
+      <p class="giris-alt">Yönetim Paneli</p>
+    </div>
+
+    {% if hata %}
+      <div class="alert alert-hata">{{ hata }}</div>
+    {% endif %}
+
+    <form method="POST" class="giris-form">
+      <div class="form-group">
+        <label>Şifre</label>
+        <input
+          type="password"
+          name="sifre"
+          placeholder="••••••••"
+          required
+          autofocus
+          class="giris-input"
+        />
+      </div>
+      <button type="submit" class="btn btn-birincil giris-btn">Giriş Yap</button>
+    </form>
+  </div>
+</body>
+</html>

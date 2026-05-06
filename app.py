@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, session
+from functools import wraps
 from database import get_db, init_db
 from datetime import date
 import csv
@@ -6,7 +7,18 @@ import io
 import openpyxl
 
 app = Flask(__name__)
-app.secret_key = "bakkal-secret-key"
+app.secret_key = "bakkal-gizli-anahtar-2024"
+
+SIFRE = "bakkal2024"
+
+
+def giris_gerekli(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("giris_yapildi"):
+            return redirect(url_for("giris", sonraki=request.path))
+        return f(*args, **kwargs)
+    return decorated
 
 
 @app.before_request
@@ -14,19 +26,45 @@ def setup():
     init_db()
 
 
+# ---------- Giriş / Çıkış ----------
+@app.route("/giris", methods=["GET", "POST"])
+def giris():
+    if session.get("giris_yapildi"):
+        return redirect(url_for("satis"))
+
+    hata = None
+    if request.method == "POST":
+        if request.form["sifre"] == SIFRE:
+            session["giris_yapildi"] = True
+            sonraki = request.args.get("sonraki") or url_for("satis")
+            return redirect(sonraki)
+        hata = "Şifre yanlış, tekrar deneyin."
+
+    return render_template("giris.html", hata=hata)
+
+
+@app.route("/cikis")
+def cikis():
+    session.clear()
+    return redirect(url_for("giris"))
+
+
 # ---------- Ana Sayfa ----------
 @app.route("/")
+@giris_gerekli
 def index():
     return redirect(url_for("satis"))
 
 
 # ---------- Satış Ekranı ----------
 @app.route("/satis")
+@giris_gerekli
 def satis():
     return render_template("satis.html")
 
 
 @app.route("/api/urun/<barkod>")
+@giris_gerekli
 def urun_bul(barkod):
     db = get_db()
     urun = db.execute("SELECT * FROM urunler WHERE barkod = ?", (barkod,)).fetchone()
@@ -37,6 +75,7 @@ def urun_bul(barkod):
 
 
 @app.route("/api/satis", methods=["POST"])
+@giris_gerekli
 def satis_kaydet():
     data = request.json
     sepet = data.get("sepet", [])
@@ -78,6 +117,7 @@ def satis_kaydet():
 
 # ---------- Stok Yönetimi ----------
 @app.route("/stok")
+@giris_gerekli
 def stok():
     db = get_db()
     urunler = db.execute("SELECT * FROM urunler ORDER BY ad").fetchall()
@@ -86,6 +126,7 @@ def stok():
 
 
 @app.route("/stok/guncelle/<int:urun_id>", methods=["POST"])
+@giris_gerekli
 def stok_guncelle(urun_id):
     miktar = int(request.form["miktar"])
     db = get_db()
@@ -98,6 +139,7 @@ def stok_guncelle(urun_id):
 
 # ---------- Ürün Yönetimi ----------
 @app.route("/urunler")
+@giris_gerekli
 def urunler():
     db = get_db()
     urun_listesi = db.execute("SELECT * FROM urunler ORDER BY ad").fetchall()
@@ -106,6 +148,7 @@ def urunler():
 
 
 @app.route("/urun/ekle", methods=["GET", "POST"])
+@giris_gerekli
 def urun_ekle():
     if request.method == "POST":
         barkod = request.form["barkod"].strip()
@@ -133,6 +176,7 @@ def urun_ekle():
 
 
 @app.route("/urun/duzenle/<int:urun_id>", methods=["GET", "POST"])
+@giris_gerekli
 def urun_duzenle(urun_id):
     db = get_db()
     urun = db.execute("SELECT * FROM urunler WHERE id = ?", (urun_id,)).fetchone()
@@ -159,6 +203,7 @@ def urun_duzenle(urun_id):
 
 
 @app.route("/urun/sil/<int:urun_id>", methods=["POST"])
+@giris_gerekli
 def urun_sil(urun_id):
     db = get_db()
     db.execute("DELETE FROM urunler WHERE id = ?", (urun_id,))
@@ -170,6 +215,7 @@ def urun_sil(urun_id):
 
 # ---------- Toplu Yükleme ----------
 @app.route("/urunler/yukle", methods=["GET", "POST"])
+@giris_gerekli
 def toplu_yukle():
     if request.method == "POST":
         dosya = request.files.get("dosya")
@@ -239,6 +285,7 @@ def toplu_yukle():
 
 # ---------- Raporlar ----------
 @app.route("/rapor")
+@giris_gerekli
 def rapor():
     db = get_db()
     bugun = date.today().isoformat()
@@ -267,6 +314,7 @@ def rapor():
 
 
 @app.route("/rapor/satis/<int:satis_id>")
+@giris_gerekli
 def satis_detay(satis_id):
     db = get_db()
     satis = db.execute("SELECT * FROM satislar WHERE id = ?", (satis_id,)).fetchone()
