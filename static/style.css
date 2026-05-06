@@ -333,6 +333,71 @@ code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 0.8
   color: white !important;
 }
 
+/* ARAMA BAR */
+.arama-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.arama-bar input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.55rem 1rem;
+  border: 1.5px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.arama-bar input[type="text"]:focus { border-color: #228be6; }
+.sonuc-sayisi { font-size: 0.82rem; color: #6c757d; white-space: nowrap; }
+.filtre-select {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  background: white;
+  cursor: pointer;
+}
+.filtre-select:focus { border-color: #228be6; }
+
+/* RAPOR FİLTRE */
+.filtre-form { margin-bottom: 1.25rem; }
+.filtre-satirlar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.filtre-satirlar .form-group { margin-bottom: 0; min-width: 150px; }
+.filtre-satirlar input[type="date"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+}
+.filtre-satirlar input[type="date"]:focus { border-color: #228be6; }
+.filtre-butonlar { display: flex; gap: 0.5rem; align-items: flex-end; padding-bottom: 0; }
+.filtre-ozet {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.ozet-kutu { display: flex; align-items: baseline; gap: 0.4rem; }
+.ozet-sayi { font-size: 1.3rem; font-weight: 700; color: #228be6; }
+.ozet-etiket { font-size: 0.82rem; color: #6c757d; }
+.ozet-ayrac { color: #ced4da; font-size: 1.2rem; }
+
 .tarih-badge {
   background: #e9ecef;
   padding: 4px 12px;

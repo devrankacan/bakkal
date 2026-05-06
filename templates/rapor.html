@@ -2,9 +2,10 @@
 {% block content %}
 <div class="sayfa-baslik">
   <h1>Rapor</h1>
-  <span class="tarih-badge">{{ bugun }}</span>
+  <span class="tarih-badge">Bugün: {{ bugun }}</span>
 </div>
 
+<!-- Bugünkü özet -->
 <div class="istatistik-kartlar">
   <div class="istat-kart">
     <div class="istat-sayi">{{ gunluk.adet }}</div>
@@ -20,6 +21,71 @@
   </div>
 </div>
 
+<!-- Filtreleme -->
+<div class="card">
+  <h2>Satış Filtrele</h2>
+  <form method="GET" action="/rapor" class="filtre-form">
+    <div class="filtre-satirlar">
+      <div class="form-group">
+        <label>Başlangıç Tarihi</label>
+        <input type="date" name="bas" value="{{ bas_tarih }}" />
+      </div>
+      <div class="form-group">
+        <label>Bitiş Tarihi</label>
+        <input type="date" name="bitis" value="{{ bitis_tarih }}" />
+      </div>
+      <div class="form-group">
+        <label>Kategori</label>
+        <select name="kategori" class="filtre-select">
+          <option value="">Tüm Kategoriler</option>
+          {% for k in kategoriler %}
+          <option value="{{ k.kategori }}" {{ 'selected' if k.kategori == kategori_filtre }}>{{ k.kategori }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filtre-butonlar">
+        <button type="submit" class="btn btn-birincil">Filtrele</button>
+        <a href="/rapor" class="btn btn-ikincil">Sıfırla</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- Filtre özeti -->
+  <div class="filtre-ozet">
+    <div class="ozet-kutu">
+      <span class="ozet-sayi">{{ filtre_ozet.adet }}</span>
+      <span class="ozet-etiket">Satış</span>
+    </div>
+    <div class="ozet-ayrac">→</div>
+    <div class="ozet-kutu">
+      <span class="ozet-sayi">{{ "%.2f"|format(filtre_ozet.toplam) }} ₺</span>
+      <span class="ozet-etiket">Toplam Ciro</span>
+    </div>
+    <div class="ozet-ayrac">|</div>
+    <span class="ozet-etiket">{{ bas_tarih }} – {{ bitis_tarih }}</span>
+  </div>
+
+  <table class="tablo">
+    <thead>
+      <tr><th>No</th><th>Tarih</th><th>Saat</th><th>Toplam</th><th>Detay</th></tr>
+    </thead>
+    <tbody>
+      {% for s in filtreli_satislar %}
+      <tr>
+        <td>#{{ s.id }}</td>
+        <td>{{ s.tarih }}</td>
+        <td>{{ s.olusturma.split(' ')[1] if ' ' in s.olusturma else s.olusturma }}</td>
+        <td>{{ "%.2f"|format(s.toplam) }} ₺</td>
+        <td><a href="/rapor/satis/{{ s.id }}" class="btn btn-kucuk btn-ikincil">Görüntüle</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="bos-mesaj">Bu aralıkta satış bulunamadı.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Düşük stok -->
 {% if dusuk_stok %}
 <div class="card">
   <h2>⚠️ Düşük Stok Uyarısı</h2>
@@ -40,26 +106,4 @@
   </table>
 </div>
 {% endif %}
-
-<div class="card">
-  <h2>Son Satışlar</h2>
-  <table class="tablo">
-    <thead>
-      <tr><th>No</th><th>Tarih</th><th>Saat</th><th>Toplam</th><th>Detay</th></tr>
-    </thead>
-    <tbody>
-      {% for s in son_satislar %}
-      <tr>
-        <td>#{{ s.id }}</td>
-        <td>{{ s.tarih }}</td>
-        <td>{{ s.olusturma.split(' ')[1] if ' ' in s.olusturma else s.olusturma }}</td>
-        <td>{{ "%.2f"|format(s.toplam) }} ₺</td>
-        <td><a href="/rapor/satis/{{ s.id }}" class="btn btn-kucuk btn-ikincil">Görüntüle</a></td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" class="bos-mesaj">Henüz satış yapılmamış.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
 {% endblock %}

@@ -9,7 +9,11 @@
 </div>
 
 <div class="card">
-  <table class="tablo">
+  <div class="arama-bar">
+    <input type="text" id="aramaInput" placeholder="Ürün adı veya barkod ara..." oninput="tabloFiltrele()" autofocus />
+    <span id="sonucSayisi" class="sonuc-sayisi"></span>
+  </div>
+  <table class="tablo" id="urunTablosu">
     <thead>
       <tr>
         <th>Barkod</th>
@@ -40,5 +44,23 @@
       {% endfor %}
     </tbody>
   </table>
+  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:2rem;">Arama sonucu bulunamadı.</div>
 </div>
+
+<script>
+function tabloFiltrele() {
+  const q = document.getElementById("aramaInput").value.toLowerCase().trim();
+  const satirlar = document.querySelectorAll("#urunTablosu tbody tr");
+  let gorunen = 0;
+  satirlar.forEach(satir => {
+    const metin = satir.textContent.toLowerCase();
+    const eslesme = !q || metin.includes(q);
+    satir.style.display = eslesme ? "" : "none";
+    if (eslesme) gorunen++;
+  });
+  document.getElementById("sonucSayisi").textContent = q ? `${gorunen} sonuç` : `${gorunen} ürün`;
+  document.getElementById("bulunamadi").classList.toggle("gizli", gorunen > 0);
+}
+tabloFiltrele();
+</script>
 {% endblock %}

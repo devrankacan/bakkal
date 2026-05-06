@@ -290,13 +290,42 @@ def rapor():
     db = get_db()
     bugun = date.today().isoformat()
 
+    bas_tarih = request.args.get("bas", bugun)
+    bitis_tarih = request.args.get("bitis", bugun)
+    kategori_filtre = request.args.get("kategori", "")
+
     gunluk = db.execute(
         "SELECT COUNT(*) as adet, COALESCE(SUM(toplam),0) as toplam FROM satislar WHERE tarih = ?",
         (bugun,),
     ).fetchone()
 
-    son_satislar = db.execute(
-        "SELECT * FROM satislar ORDER BY id DESC LIMIT 20"
+    filtre_query = """
+        SELECT s.id, s.tarih, s.toplam, s.olusturma
+        FROM satislar s
+        WHERE s.tarih BETWEEN ? AND ?
+    """
+    params = [bas_tarih, bitis_tarih]
+
+    if kategori_filtre:
+        filtre_query += """
+            AND EXISTS (
+                SELECT 1 FROM satis_kalemleri sk
+                JOIN urunler u ON u.id = sk.urun_id
+                WHERE sk.satis_id = s.id AND u.kategori = ?
+            )
+        """
+        params.append(kategori_filtre)
+
+    filtre_query += " ORDER BY s.id DESC LIMIT 100"
+    filtreli_satislar = db.execute(filtre_query, params).fetchall()
+
+    filtre_ozet = db.execute(
+        "SELECT COUNT(*) as adet, COALESCE(SUM(toplam),0) as toplam FROM satislar WHERE tarih BETWEEN ? AND ?",
+        (bas_tarih, bitis_tarih),
+    ).fetchone()
+
+    kategoriler = db.execute(
+        "SELECT DISTINCT kategori FROM urunler WHERE kategori != '' ORDER BY kategori"
     ).fetchall()
 
     dusuk_stok = db.execute(
@@ -307,9 +336,14 @@ def rapor():
     return render_template(
         "rapor.html",
         gunluk=gunluk,
-        son_satislar=son_satislar,
+        filtreli_satislar=filtreli_satislar,
+        filtre_ozet=filtre_ozet,
         dusuk_stok=dusuk_stok,
         bugun=bugun,
+        bas_tarih=bas_tarih,
+        bitis_tarih=bitis_tarih,
+        kategori_filtre=kategori_filtre,
+        kategoriler=kategoriler,
     )
 
 

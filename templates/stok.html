@@ -5,7 +5,20 @@
 </div>
 
 <div class="card">
-  <table class="tablo">
+  <div class="arama-bar">
+    <input type="text" id="aramaInput" placeholder="Ürün adı veya barkod ara..." oninput="tabloFiltrele()" autofocus />
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <label style="font-size:0.85rem;color:#6c757d;white-space:nowrap;">Durum:</label>
+      <select id="durumFiltre" onchange="tabloFiltrele()" class="filtre-select">
+        <option value="">Tümü</option>
+        <option value="tukendi">Tükendi</option>
+        <option value="az">Az Stok</option>
+        <option value="yeterli">Yeterli</option>
+      </select>
+      <span id="sonucSayisi" class="sonuc-sayisi"></span>
+    </div>
+  </div>
+  <table class="tablo" id="stokTablosu">
     <thead>
       <tr>
         <th>Barkod</th>
@@ -19,7 +32,8 @@
     </thead>
     <tbody>
       {% for u in urunler %}
-      <tr class="{{ 'satir-uyari' if u.stok <= u.min_stok }}">
+      <tr class="{{ 'satir-uyari' if u.stok <= u.min_stok }}"
+          data-durum="{{ 'tukendi' if u.stok == 0 else ('az' if u.stok <= u.min_stok else 'yeterli') }}">
         <td><code>{{ u.barkod }}</code></td>
         <td>{{ u.ad }}</td>
         <td>{{ u.kategori or '-' }}</td>
@@ -46,5 +60,27 @@
       {% endfor %}
     </tbody>
   </table>
+  <div id="bulunamadi" class="bos-mesaj gizli" style="padding:2rem;">Arama sonucu bulunamadı.</div>
 </div>
+
+<script>
+function tabloFiltrele() {
+  const q = document.getElementById("aramaInput").value.toLowerCase().trim();
+  const durum = document.getElementById("durumFiltre").value;
+  const satirlar = document.querySelectorAll("#stokTablosu tbody tr");
+  let gorunen = 0;
+  satirlar.forEach(satir => {
+    const metin = satir.textContent.toLowerCase();
+    const satirDurum = satir.dataset.durum || "";
+    const metinEslesme = !q || metin.includes(q);
+    const durumEslesme = !durum || satirDurum === durum;
+    const goster = metinEslesme && durumEslesme;
+    satir.style.display = goster ? "" : "none";
+    if (goster) gorunen++;
+  });
+  document.getElementById("sonucSayisi").textContent = `${gorunen} ürün`;
+  document.getElementById("bulunamadi").classList.toggle("gizli", gorunen > 0);
+}
+tabloFiltrele();
+</script>
 {% endblock %}
