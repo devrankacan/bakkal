@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="sayfa-baslik">
+  <h1>Toplu Ürün Yükleme</h1>
+  <a href="/urunler" class="btn btn-ikincil">← Geri</a>
+</div>
+
+<div class="card form-card">
+  <p style="margin-bottom:1.25rem;color:#495057;">
+    Excel (.xlsx) veya CSV (.csv) dosyanı yükle. Barkodu zaten kayıtlı ürünler <strong>güncellenir</strong>, yeni olanlar <strong>eklenir</strong>.
+  </p>
+
+  <div class="format-bilgi">
+    <strong>Dosya formatı (ilk satır başlık, atlanır):</strong>
+    <table class="tablo" style="margin-top:0.5rem;">
+      <thead>
+        <tr>
+          <th>A — barkod *</th>
+          <th>B — ad *</th>
+          <th>C — fiyat *</th>
+          <th>D — stok</th>
+          <th>E — min_stok</th>
+          <th>F — kategori</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>8690637123456</code></td>
+          <td>Ülker Çikolata</td>
+          <td>12.50</td>
+          <td>20</td>
+          <td>5</td>
+          <td>Atıştırmalık</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:0.5rem;font-size:0.82rem;color:#868e96;">* zorunlu alan — stok/min_stok/kategori boş bırakılabilir (varsayılan: 0 / 5 / boş)</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" style="margin-top:1.5rem;">
+    <div class="form-group">
+      <label>Dosya seç (.xlsx veya .csv)</label>
+      <input type="file" name="dosya" accept=".xlsx,.xls,.csv" required />
+    </div>
+    <div class="form-butonlar">
+      <a href="/urunler" class="btn btn-ikincil">İptal</a>
+      <button type="submit" class="btn btn-birincil">Yükle</button>
+    </div>
+  </form>
+</div>
+
+<div class="card" style="max-width:600px;margin-top:0;">
+  <h2>Örnek CSV içeriği</h2>
+  <pre style="background:#f1f3f5;padding:1rem;border-radius:8px;font-size:0.82rem;overflow-x:auto;">barkod,ad,fiyat,stok,min_stok,kategori
+8690637123456,Ülker Çikolata,12.50,20,5,Atıştırmalık
+8693170456789,Coca Cola 1L,25.00,15,3,İçecek
+8690000111222,Ekmek,10.00,50,10,Fırın</pre>
+</div>
+{% endblock %}

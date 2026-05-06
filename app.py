@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from database import get_db, init_db
 from datetime import date
+import csv
+import io
+import openpyxl
 
 app = Flask(__name__)
 app.secret_key = "bakkal-secret-key"
@@ -163,6 +166,75 @@ def urun_sil(urun_id):
     db.close()
     flash("Ürün silindi.", "basari")
     return redirect(url_for("urunler"))
+
+
+# ---------- Toplu Yükleme ----------
+@app.route("/urunler/yukle", methods=["GET", "POST"])
+def toplu_yukle():
+    if request.method == "POST":
+        dosya = request.files.get("dosya")
+        if not dosya or dosya.filename == "":
+            flash("Dosya seçilmedi.", "hata")
+            return redirect(url_for("toplu_yukle"))
+
+        satirlar = []
+        ad = dosya.filename.lower()
+
+        try:
+            if ad.endswith(".xlsx") or ad.endswith(".xls"):
+                wb = openpyxl.load_workbook(dosya, data_only=True)
+                ws = wb.active
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    if row[0] is not None:
+                        satirlar.append(row)
+            elif ad.endswith(".csv"):
+                icerik = dosya.read().decode("utf-8-sig")
+                reader = csv.reader(io.StringIO(icerik))
+                next(reader, None)
+                for row in reader:
+                    if row and row[0].strip():
+                        satirlar.append(row)
+            else:
+                flash("Sadece .xlsx veya .csv dosyası kabul edilir.", "hata")
+                return redirect(url_for("toplu_yukle"))
+        except Exception as e:
+            flash(f"Dosya okunamadı: {e}", "hata")
+            return redirect(url_for("toplu_yukle"))
+
+        eklendi = guncellendi = hatali = 0
+        db = get_db()
+        for i, row in enumerate(satirlar, start=2):
+            try:
+                barkod   = str(row[0]).strip()
+                urun_ad  = str(row[1]).strip()
+                fiyat    = float(str(row[2]).replace(",", "."))
+                stok     = int(float(str(row[3]))) if len(row) > 3 and row[3] not in (None, "") else 0
+                min_stok = int(float(str(row[4]))) if len(row) > 4 and row[4] not in (None, "") else 5
+                kategori = str(row[5]).strip() if len(row) > 5 and row[5] else ""
+
+                mevcut = db.execute("SELECT id FROM urunler WHERE barkod = ?", (barkod,)).fetchone()
+                if mevcut:
+                    db.execute(
+                        "UPDATE urunler SET ad=?, fiyat=?, stok=?, min_stok=?, kategori=? WHERE barkod=?",
+                        (urun_ad, fiyat, stok, min_stok, kategori, barkod),
+                    )
+                    guncellendi += 1
+                else:
+                    db.execute(
+                        "INSERT INTO urunler (barkod, ad, fiyat, stok, min_stok, kategori) VALUES (?,?,?,?,?,?)",
+                        (barkod, urun_ad, fiyat, stok, min_stok, kategori),
+                    )
+                    eklendi += 1
+            except Exception:
+                hatali += 1
+
+        db.commit()
+        db.close()
+
+        flash(f"{eklendi} ürün eklendi, {guncellendi} ürün güncellendi, {hatali} satır atlandı.", "basari")
+        return redirect(url_for("urunler"))
+
+    return render_template("toplu_yukle.html")
 
 
 # ---------- Raporlar ----------
